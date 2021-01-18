@@ -4,6 +4,7 @@ exports.initTsLoader = void 0;
 const babel_config_1 = require("./config/babel-config");
 const override_require_1 = require("./override-require");
 const initTsLoader = () => {
+<<<<<<< HEAD
     require("@babel/register")({
         extensions: [".js", ".jsx", ".ts", ".tsx", ".json"],
         cache: true,
@@ -28,6 +29,9 @@ const initTsLoader = () => {
             "transform-es2015-modules-commonjs",
         ],
     });
+=======
+    require("@babel/register")(babel_config_1.createBabelConfig("server"));
+>>>>>>> 4b5fbd4d8bad50abf7817422bc512375e4191457
     override_require_1.overrideRequire();
 };
 exports.initTsLoader = initTsLoader;
