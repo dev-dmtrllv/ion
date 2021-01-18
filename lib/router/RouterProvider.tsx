@@ -127,7 +127,7 @@ export const RouterProvider: React.FC<RouterProviderProps> & { app: JSX.Element 
 					urlRef.current = routeToUrl;
 					setUrl(routeToUrl);
 				}
-				else if(env.isDev)
+				else if (env.isDev)
 				{
 					console.info("canceled routing to " + redirects.pop()!);
 				}
@@ -210,7 +210,18 @@ export const RouterProvider: React.FC<RouterProviderProps> & { app: JSX.Element 
 	const addChangeListener = (listener) => { (!changeHandlers.current.includes(listener)) && changeHandlers.current.push(listener); }
 	const removeChangeListener = (listener) => { (changeHandlers.current.includes(listener)) && changeHandlers.current.splice(changeHandlers.current.indexOf(listener), 1); }
 
-	const ctx: RouterProviderContextType = { url, match: matcher, redirect: handleRedirect, routeTo, getParams, query, redirectInfo: redirectInfo.current, addChangeListener, removeChangeListener };
+	const ctx: RouterProviderContextType = {
+		url,
+		match: matcher,
+		redirect: handleRedirect,
+		routeTo,
+		getParams,
+		query,
+		redirectInfo: redirectInfo.current,
+		addChangeListener,
+		removeChangeListener,
+		cache: (url: string, duration?: number) => { props.onCache && props.onCache(url, duration); }
+	};
 
 	React.useEffect(() => 
 	{
@@ -235,7 +246,7 @@ export const RouterProvider: React.FC<RouterProviderProps> & { app: JSX.Element 
 	const isInitialMount = React.useRef(true);
 	React.useEffect(() => 
 	{
-		if(!isInitialMount.current)
+		if (!isInitialMount.current)
 		{
 			changeHandlers.current.forEach(listener => listener("end", url));
 			updateUrlTimeout.current = null;
@@ -271,6 +282,7 @@ type RouterProviderContextType = {
 	 */
 	addChangeListener: (onChangeListener: RouteChangeListener) => void;
 	removeChangeListener: (onChangeListener: RouteChangeListener) => void;
+	cache: (url: string, duration?: number) => void;
 };
 
 type RouteChangeEventType = "start" | "end" | "canceled";
@@ -280,6 +292,7 @@ export type RouteChangeListener = (event: RouteChangeEventType, routeToUrl: stri
 type RouterProviderProps = {
 	url: string;
 	onRedirect?: (from: string, to: string, exact?: boolean) => void;
+	onCache?: (url: string, duration?: number) => void;
 };
 
 export type RedirectInfo = {

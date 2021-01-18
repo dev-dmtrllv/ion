@@ -20,12 +20,14 @@ declare type RouterProviderContextType = {
      */
     addChangeListener: (onChangeListener: RouteChangeListener) => void;
     removeChangeListener: (onChangeListener: RouteChangeListener) => void;
+    cache: (url: string, duration?: number) => void;
 };
 declare type RouteChangeEventType = "start" | "end" | "canceled";
 export declare type RouteChangeListener = (event: RouteChangeEventType, routeToUrl: string) => any;
 declare type RouterProviderProps = {
     url: string;
     onRedirect?: (from: string, to: string, exact?: boolean) => void;
+    onCache?: (url: string, duration?: number) => void;
 };
 export declare type RedirectInfo = {
     from: string;

@@ -4,6 +4,7 @@ export declare const Route: React.FC<RouteProps>;
 declare type RouteProps = {
     path: string;
     exact?: boolean;
+    cache?: number | ((url: string) => number);
 };
 declare type RouteContext = {
     readonly path: string;

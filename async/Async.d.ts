@@ -15,7 +15,7 @@ export declare type AsyncState<D> = {
     error?: Error;
 };
 export declare type AsyncResolver<D> = () => Promise<D>;
-export declare type AsyncRender<D> = (state: AsyncState<D>, updateData: (data: D) => void, deleteData: () => boolean) => JSX.Element | null;
+export declare type AsyncRender<D> = (state: AsyncState<D>, updateData: (data: D) => void, deleteData: () => boolean) => (JSX.Element | null);
 export declare type AsyncFC<P> = React.FC<P & {
     prefetch?: boolean;
     cache?: boolean | number;

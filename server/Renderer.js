@@ -16,12 +16,18 @@ exports.Renderer = void 0;
 const fetch_1 = require("fetch");
 const react_1 = __importDefault(require("react"));
 const server_1 = __importDefault(require("react-dom/server"));
+const memory_cache_1 = __importDefault(require("memory-cache"));
 const async_1 = require("../async");
 const Fetch_1 = require("../async/Fetch");
 const router_1 = require("../router");
 class Renderer {
     constructor(server, appConfig, clientInfo) {
-        this.handleRequest = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.render = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const cachedHtml = memory_cache_1.default.get(req.url);
+            if (cachedHtml) {
+                console.log(`rendering ${req.url} from cache`);
+                return res.send(cachedHtml);
+            }
             const fetcher = (url, method, data) => new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                 if (url.startsWith("/api")) // api call
                  {
@@ -55,8 +61,9 @@ class Renderer {
                 }
             }));
             let redirectInfo = null;
+            let cacheInfo;
             const wrappedApp = (react_1.default.createElement(Fetch_1.FetchProvider, { fetcher: fetcher },
-                react_1.default.createElement(router_1.RouterProvider, { url: req.url, onRedirect: (from, to) => { redirectInfo = { from, to }; } },
+                react_1.default.createElement(router_1.RouterProvider, { url: req.url, onRedirect: (from, to) => { redirectInfo = { from, to }; }, onCache: (url, duration) => { cacheInfo = { url, duration }; } },
                     react_1.default.createElement(this.appComponent, null))));
             const asyncData = yield async_1.prefetch(wrappedApp, {}, () => !redirectInfo);
             if (redirectInfo) {
@@ -71,6 +78,15 @@ class Renderer {
                     async: asyncData
                 };
                 const appString = server_1.default.renderToString(react_1.default.createElement(async_1.AsyncProvider, { initData: asyncData }, wrappedApp));
+                if (cacheInfo) {
+                    const duration = cacheInfo.duration || 5000;
+                    if (duration > 0) {
+                        const htmlString = server_1.default.renderToStaticMarkup(this.renderHTML({ appString, ssrData, importPaths }));
+                        res.send(htmlString);
+                        memory_cache_1.default.put(cacheInfo.url, htmlString, duration);
+                        return;
+                    }
+                }
                 const htmlStream = server_1.default.renderToStaticNodeStream(this.renderHTML({ appString, ssrData, importPaths }));
                 htmlStream.on("data", (data) => res.write(data));
                 htmlStream.on("error", (err) => {

@@ -68,7 +68,6 @@ class Server {
         this.listen = () => new Promise((res, rej) => {
             if (!this._isListening) {
                 this._isListening = true;
-                this.initializeRoutes();
                 this._httpServer = this.expressApp.listen(this.port, this.host, () => {
                     this.onListening();
                     res(this._httpServer);
@@ -109,6 +108,8 @@ class Server {
         this.configureSession(config);
         this.configureApi(config);
         this.apps = this.configureApps(config);
+        this.initializeRoutes();
+        this.init();
     }
     initializeRoutes() {
         for (const name in this.apps) {
@@ -116,9 +117,8 @@ class Server {
             const renderer = new (app.renderer || Renderer_1.Renderer)(this, app.config, this._clientApiInfo);
             this._renderers.push(renderer);
             this.expressApp.use(app.config.url, app.router);
-            app.router.get("*", renderer.handleRequest);
+            app.router.get("*", renderer.render);
         }
-        this.init();
     }
     setRenderer(app, rendererType) { this.apps[app].renderer = rendererType; }
     ;

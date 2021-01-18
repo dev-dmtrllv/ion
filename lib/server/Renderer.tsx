@@ -2,9 +2,10 @@ import { fetchUrl } from "fetch";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { Request, Response } from "express";
+import mcache from "memory-cache";
 import { Server } from "./Server";
 import { SSRData } from "./SSRData";
-import { ApiClientInfo } from "./Api";
+import { ApiClientInfo, ApiMethods } from "./Api";
 import { AsyncProvider, getImportPaths, prefetch } from "../async";
 import { FetchProvider } from "../async/Fetch";
 import { RedirectInfo, RouterProvider } from "../router";
@@ -55,9 +56,16 @@ export class Renderer
 		}
 	}
 
-	public handleRequest = async (req: Request, res: Response) =>
+	public render = async (req: Request, res: Response) =>
 	{
-		const fetcher = (url: string, method: "get" | "post" | "put" | "delete", data?: object) => new Promise(async (resolve, reject) => 
+		const cachedHtml = mcache.get(req.url);
+		if(cachedHtml)
+		{
+			console.log(`rendering ${req.url} from cache`);
+			return res.send(cachedHtml);
+		}
+
+		const fetcher = (url: string, method: ApiMethods, data?: object) => new Promise(async (resolve, reject) => 
 		{
 			if (url.startsWith("/api")) // api call
 			{
@@ -100,9 +108,11 @@ export class Renderer
 
 		let redirectInfo: RedirectInfo = null;
 
+		let cacheInfo: { url: string, duration?: number } | undefined;
+
 		const wrappedApp = (
 			<FetchProvider fetcher={fetcher}>
-				<RouterProvider url={req.url} onRedirect={(from, to) => { redirectInfo = { from, to }; }}>
+				<RouterProvider url={req.url} onRedirect={(from, to) => { redirectInfo = { from, to }; }} onCache={(url, duration) => { cacheInfo = { url, duration } }}>
 					<this.appComponent />
 				</RouterProvider>
 			</FetchProvider>
@@ -130,6 +140,19 @@ export class Renderer
 					{wrappedApp}
 				</AsyncProvider>
 			);
+
+			if (cacheInfo)
+			{
+				const duration = cacheInfo.duration || 5000;
+				if(duration > 0)
+				{
+					const htmlString = ReactDOMServer.renderToStaticMarkup(this.renderHTML({ appString, ssrData, importPaths }));
+					res.send(htmlString);
+					mcache.put(cacheInfo.url, htmlString, duration);
+					return;
+				}
+			}
+
 
 			const htmlStream = ReactDOMServer.renderToStaticNodeStream(this.renderHTML({ appString, ssrData, importPaths }));
 			htmlStream.on("data", (data) => res.write(data));

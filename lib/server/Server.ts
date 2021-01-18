@@ -5,6 +5,7 @@ import http from "http";
 import session from "express-session";
 import createMySqlSessionStore from "express-mysql-session";
 import createFileSessionStore from "session-file-store";
+import mcache from "memory-cache";
 
 import { Api, ApiDefinition, ApiMethods, ApiType } from "./Api";
 import { Manifest } from "./Manifest";
@@ -61,6 +62,8 @@ export class Server
 		this.configureSession(config);
 		this.configureApi(config);
 		this.apps = this.configureApps(config);
+		this.initializeRoutes();
+		this.init();
 	}
 
 	public readonly callApi = async (url: string, method: ApiMethods, data: any, req: express.Request, res: express.Response) =>
@@ -92,10 +95,8 @@ export class Server
 			const renderer: Renderer = new (app.renderer || Renderer)(this, app.config, this._clientApiInfo);
 			this._renderers.push(renderer);
 			this.expressApp.use(app.config.url, app.router);
-			app.router.get("*", renderer.handleRequest);
+			app.router.get("*", renderer.render);
 		}
-
-		this.init();
 	}
 
 	protected setRenderer<T extends Renderer>(app: AppName, rendererType: RendererType<T>): void { (this.apps[app] as any).renderer = rendererType; };
@@ -302,7 +303,6 @@ export class Server
 		if (!this._isListening)
 		{
 			this._isListening = true;
-			this.initializeRoutes();
 			this._httpServer = this.expressApp.listen(this.port, this.host, () => 
 			{
 				this.onListening();

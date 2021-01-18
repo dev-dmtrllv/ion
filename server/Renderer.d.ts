@@ -19,7 +19,7 @@ export declare class Renderer {
     private readonly _clientApiInfo;
     constructor(server: Server, appConfig: IonAppConfigWithName, clientInfo: ApiClientInfo);
     loadAppComponent(): void;
-    handleRequest: (req: Request, res: Response) => Promise<void>;
+    render: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
     protected renderHTML({ title, styles, scripts, appString, head, ssrData, favicon, importPaths }: HTMLProps): JSX.Element;
     protected renderStyles(srcs: string[]): JSX.Element[];
     protected renderScripts(srcs: string[]): JSX.Element[];

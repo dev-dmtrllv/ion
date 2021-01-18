@@ -168,7 +168,18 @@ const RouterProvider = (props) => {
     });
     const addChangeListener = (listener) => { (!changeHandlers.current.includes(listener)) && changeHandlers.current.push(listener); };
     const removeChangeListener = (listener) => { (changeHandlers.current.includes(listener)) && changeHandlers.current.splice(changeHandlers.current.indexOf(listener), 1); };
-    const ctx = { url, match: matcher, redirect: handleRedirect, routeTo, getParams, query, redirectInfo: redirectInfo.current, addChangeListener, removeChangeListener };
+    const ctx = {
+        url,
+        match: matcher,
+        redirect: handleRedirect,
+        routeTo,
+        getParams,
+        query,
+        redirectInfo: redirectInfo.current,
+        addChangeListener,
+        removeChangeListener,
+        cache: (url, duration) => { props.onCache && props.onCache(url, duration); }
+    };
     react_1.default.useEffect(() => {
         ctx.redirect = (from, to, exact) => {
             if (props.onRedirect) {
