@@ -16,7 +16,14 @@ import { Api } from "ion/server"
 @Api.URL("/animals-list")
 export class Animals extends Api
 {
-	private static animalList: string[] = [];
+	private static animalList: string[] = [
+		"elephant",
+		"monkey",
+		"leopard",
+		"badger",
+		"cow",
+		"chicken"
+	];
 
 	public get = () => Animals.animalList;
 
