@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { getFilesRecursive, writeJson } from "../utils";
+import { getFilesRecursive, write, writeJson } from "../utils";
 
 export const genProject = (projectDir: string) =>
 {
@@ -27,7 +27,15 @@ export const genProject = (projectDir: string) =>
 			"resolveJsonModule": true,
 			"jsx": "preserve",
 			"experimentalDecorators": true,
-			"baseUrl": "./src"
+			"baseUrl": "./src",
+			"paths": {
+				"server/*": [
+					"server/*"
+				],
+				"app/*": [
+					"app/*"
+				]
+			}
 		},
 		"include": [
 			"./src/**/*"
@@ -36,7 +44,7 @@ export const genProject = (projectDir: string) =>
 			"node_modules/**/*"
 		]
 	});
-	
+
 	writeJson(path.resolve(projectDir, "ion.secret.json"), {
 		"database": {
 			"user": "PRODUCTION_USER_NAME",
@@ -48,4 +56,11 @@ export const genProject = (projectDir: string) =>
 			}
 		}
 	});
+
+	write(path.resolve(projectDir, ".gitignore"), `ion.secrets.json
+manifest.json
+node_modules
+dist
+`
+	);
 }
