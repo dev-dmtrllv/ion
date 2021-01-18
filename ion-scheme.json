@@ -1,0 +1,98 @@
+{
+	"type": "object",
+	"properties": {
+		"apps": {
+			"type": "object",
+			"patternProperties": {
+				"^.*$": {
+					"type": "object",
+					"properties": {
+						"entry": {
+							"type": "string"
+						},
+						"title": {
+							"type": "string"
+						},
+						"url": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false,
+					"required": [
+						"entry",
+						"url"
+					]
+				}
+			}
+		},
+		"server": {
+			"type": "object",
+			"properties": {
+				"entry": {
+					"type": "string"
+				},
+				"host": {
+					"type": "string"
+				},
+				"port": {
+					"type": "number"
+				},
+				"apiPath": {
+					"type": "string"
+				},
+				"session": {
+					"type": "object",
+					"properties": {
+						"name": {
+							"type": "string"
+						},
+						"secret": {
+							"type": "string"
+						},
+						"maxAge": {
+							"type": "number"
+						},
+						"useFileStorage": {
+							"type": "boolean"
+						}
+					},
+					"required": [
+						"secret"
+					]
+				}
+			}
+		},
+		"database": {
+			"type": "object",
+			"properties": {
+				"user": {
+					"type": "string"
+				},
+				"password": {
+					"type": "string"
+				},
+				"databaseName": {
+					"type": "string"
+				},
+				"host": {
+					"type": "string"
+				},
+				"port": {
+					"type": "number"
+				},
+				"poolConnectionLimit": {
+					"type": "number"
+				},
+				"required": [
+					"user",
+					"password",
+					"databaseName"
+				]
+			}
+		},
+		"required": [
+			"apps",
+			"server"
+		]
+	}
+}

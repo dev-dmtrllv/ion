@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"rootDir": "./src",
+		"outDir": "../bin",
+		"esModuleInterop": true,
+		"module": "CommonJS",
+		"target": "ES6",
+		"moduleResolution": "Node",
+		"allowSyntheticDefaultImports": true,
+		"strictNullChecks": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"experimentalDecorators": true
+	},
+	"include": [
+		"./src/**/*"
+	],
+	"exclude": [
+		"node_modules"
+	]
+}

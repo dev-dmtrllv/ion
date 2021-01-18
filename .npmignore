@@ -1,0 +1,8 @@
+tsconfig.json
+tsconfig.cli.json
+lib
+cli
+node_modules
+.gitignore
+.npmignore
+scripts

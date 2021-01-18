@@ -1,0 +1,30 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../ion-test"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true,
+			"**/bin": true,
+			"async": true,
+			"client": true,
+			// "node_modules": true,
+			"router": true,
+			"server": true,
+			"index.d.ts": true,
+			"index.js": true,
+			"package-lock.json": true,
+			".npmignore": true,
+			".gitignore": true
+		}
+	}
+}
