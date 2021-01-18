@@ -42,7 +42,7 @@ const devDependencies = [
 const dependencies = [
 	"body-parser",
 	"cookie-parser",
-	// "dev-dmtrllv/ion",
+	"dev-dmtrllv/ion",
 	"express-session",
 	"express",
 	"react",
