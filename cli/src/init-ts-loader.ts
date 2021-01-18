@@ -19,7 +19,7 @@ export const initTsLoader = () =>
 			"@babel/preset-react",
 		],
 		plugins: [
-			"module-resolver", { root: process.cwd(), alias: getBabelAliases() },
+			["module-resolver", { root: process.cwd(), alias: getBabelAliases() }],
 			"@babel/plugin-syntax-dynamic-import",
 			["@babel/plugin-proposal-decorators", { "legacy": true }],
 			["@babel/plugin-proposal-class-properties", { "loose": true }],
