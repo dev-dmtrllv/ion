@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { write, writeJson } from "../utils";
+import { writeJson } from "../utils";
 
 export class IonConfig implements IIonConfig
 {
@@ -16,7 +16,10 @@ export class IonConfig implements IIonConfig
 			host: "localhost",
 			port: 3001,
 			apiPath: "server/api",
-			staticPath: "static"
+			staticPath: "static",
+			session: {
+				secret: "keyboard cat"
+			}
 		}
 	}
 
@@ -45,7 +48,7 @@ export class IonConfig implements IIonConfig
 	{
 		this.configPath = path.resolve(projectPath, "ion.json");
 		this.apps = apps;
-		this.server = { entry: "index.ts" ,...serverConfig };
+		this.server = { entry: "index.ts", ...serverConfig };
 		this.database = databaseConfig;
 		this.removeDuplicateApps();
 	}
@@ -54,18 +57,18 @@ export class IonConfig implements IIonConfig
 	{
 		const appKeys = Object.keys(this.apps)
 		const apps = appKeys.map(k => this.apps[k]);
-		for(let i = 0; i < apps.length; i++)
+		for (let i = 0; i < apps.length; i++)
 		{
 			const target = apps[i];
-			for(let j = i + 1; j < apps.length; j++)
+			for (let j = i + 1; j < apps.length; j++)
 			{
 				const comparer = apps[j];
-				if(target.entry === comparer.entry)
+				if (target.entry === comparer.entry)
 				{
 					console.log(`found duplicate entry for the apps "${appKeys[i]}" and "${appKeys[j]}"!`);
 					delete this.apps[appKeys[j]];
 				}
-				else if(target.url === comparer.url)
+				else if (target.url === comparer.url)
 				{
 					console.log(`found duplicate url for the apps "${appKeys[i]}" and "${appKeys[j]}"`);
 					delete this.apps[appKeys[j]];
@@ -131,12 +134,22 @@ export type IonAppConfig = {
 	url: string;
 };
 
+
+export type SessionConfig = {
+	name?: string;
+	secret: string;
+	maxAge?: number;
+	useFileStorage?: boolean;
+};
+
+
 export type ServerConfig = {
 	entry?: string;
 	host: string;
 	port: number;
 	apiPath: string;
 	staticPath?: string;
+	session?: SessionConfig;
 };
 
 export type DatabaseConfig = {

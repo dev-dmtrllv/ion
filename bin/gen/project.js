@@ -16,5 +16,38 @@ const genProject = (projectDir) => {
         fs_1.default.mkdirSync(destDir, { recursive: true });
         fs_1.default.copyFileSync(p, dest);
     });
+    utils_1.writeJson(path_1.default.resolve(projectDir, "tsconfig.json"), {
+        "compilerOptions": {
+            "rootDir": "./src",
+            "outDir": "./dist",
+            "esModuleInterop": true,
+            "module": "ESNext",
+            "target": "ES6",
+            "moduleResolution": "Node",
+            "allowSyntheticDefaultImports": true,
+            "strictNullChecks": true,
+            "resolveJsonModule": true,
+            "jsx": "preserve",
+            "experimentalDecorators": true,
+            "baseUrl": "./src"
+        },
+        "include": [
+            "./src/**/*"
+        ],
+        "exclude": [
+            "node_modules/**/*"
+        ]
+    });
+    utils_1.writeJson(path_1.default.resolve(projectDir, "ion.secret.json"), {
+        "database": {
+            "user": "PRODUCTION_USER_NAME",
+            "password": "PRODUCTION_PASSWORD"
+        },
+        "server": {
+            "session": {
+                "secret": "PRODUCTION_SECRET"
+            }
+        }
+    });
 };
 exports.genProject = genProject;

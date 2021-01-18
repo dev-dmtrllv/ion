@@ -20,52 +20,22 @@ const spawn_1 = require("../utils/spawn");
 const utils_1 = require("../utils");
 const project_1 = require("../gen/project");
 const devDependencies = [
-    "@babel/core",
-    "@babel/preset-env",
-    "@babel/preset-react",
-    "@babel/preset-typescript",
     "@types/express",
     "@types/node",
     "@types/react",
-    "@types/react-dom",
-    "@types/request",
-    "babel-plugin-async-import",
-    "babel-loader",
-    "babel-plugin-transform-es2015-modules-commonjs",
-    "css-loader",
-    "file-loader",
-    "ignore-loader",
-    "mini-css-extract-plugin",
-    "sass-loader",
-    "source-map-loader",
-    "typescript",
-    "url-loader",
-    "sass",
-    "webpack",
-    "webpack-node-externals",
-    "babel-plugin-module-resolver",
-    "@babel/plugin-transform-runtime",
-    "@babel/plugin-proposal-decorators",
-    "@babel/plugin-proposal-class-properties",
-    "@babel/plugin-proposal-object-rest-spread",
-    "@babel/plugin-syntax-dynamic-import",
+    "@types/react-dom"
 ];
 const dependencies = [
-    "body-parser",
-    "cookie-parser",
-    // "dev-dmtrllv/ion",
-    "express-session",
-    "express",
+    "dev-dmtrllv/ion",
     "react",
-    "react-dom",
-    "fetch",
+    "react-dom"
 ];
 const createPackageJson = (projectDir, name) => {
     utils_1.writeJson(path_1.default.resolve(projectDir, "package.json"), {
         name,
         version: "0.1.0",
         description: "a server side rendered react app with request prefetching and caching",
-        // main: "./dist/server.js", // TODO what should we have here?
+        main: "./dist/server.js",
         scripts: {
             watch: "ion start",
             build: "ion build"

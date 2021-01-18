@@ -90,6 +90,9 @@ IonConfig.defaultConfig = {
         host: "localhost",
         port: 3001,
         apiPath: "server/api",
-        staticPath: "static"
+        staticPath: "static",
+        session: {
+            secret: "keyboard cat"
+        }
     }
 };
