@@ -29,7 +29,15 @@ const genProject = (projectDir) => {
             "resolveJsonModule": true,
             "jsx": "preserve",
             "experimentalDecorators": true,
-            "baseUrl": "./src"
+            "baseUrl": "./src",
+            "paths": {
+                "server/*": [
+                    "server/*"
+                ],
+                "app/*": [
+                    "app/*"
+                ]
+            }
         },
         "include": [
             "./src/**/*"
@@ -49,5 +57,10 @@ const genProject = (projectDir) => {
             }
         }
     });
+    utils_1.write(path_1.default.resolve(projectDir, ".gitignore"), `ion.secrets.json
+manifest.json
+node_modules
+dist
+`);
 };
 exports.genProject = genProject;
