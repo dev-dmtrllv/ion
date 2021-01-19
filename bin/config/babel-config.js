@@ -6,8 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBabelAliases = exports.createBabelConfig = void 0;
 const path_1 = __importDefault(require("path"));
 const createBabelConfig = (target) => {
+    const tsConfig = require(path_1.default.resolve(process.cwd(), "tsconfig.json"));
     const plugins = [
-        ["module-resolver", { root: process.cwd(), alias: exports.getBabelAliases() }],
+        ["module-resolver", { root: tsConfig.compilerOptions.baseUrl || process.cwd(), alias: exports.getBabelAliases() }],
     ];
     if (target === "client")
         plugins.push(["@babel/plugin-transform-runtime", { "regenerator": true }]);

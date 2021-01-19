@@ -2,8 +2,10 @@ import path from "path";
 
 export const createBabelConfig = (target: "server" | "client") =>
 {
+	const tsConfig = require(path.resolve(process.cwd(), "tsconfig.json"));
+
 	const plugins: any[] = [
-		["module-resolver", { root: process.cwd(), alias: getBabelAliases() }],
+		["module-resolver", { root: tsConfig.compilerOptions.baseUrl || process.cwd(), alias: getBabelAliases() }],
 	];
 
 	if (target === "client")
