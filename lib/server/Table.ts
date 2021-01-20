@@ -1,12 +1,387 @@
+import { table } from "console";
+import { Config } from "./Config";
 import { Database, QueryOkPacket } from "./Database";
 
 export class Table<T>
 {
+	private static readonly tables: Map<string, Table<any>> = new Map();
+
 	public readonly tableName: string;
 
-	public constructor(tableName: string)
+	public readonly scheme: TableScheme<Model<T>>;
+
+	public constructor(tableName: string, scheme: TableScheme<T>)
 	{
+		if (Table.tables.has(tableName))
+		{
+			throw new Error(`${tableName} already exists!`);
+		}
+		else
+		{
+			Table.tables.set(tableName, this);
+		}
+
 		this.tableName = tableName;
+
+		this.scheme = {
+			id: {
+				type: "int",
+				isPrimaryKey: true,
+				autoIncrement: true,
+				isNotNull: true
+			},
+			...scheme
+		} as TableScheme<Model<T>>;
+	}
+
+	public static readonly initializeTables = async () =>
+	{
+		const { database } = Config.get();
+
+		if (!database)
+			return;
+
+		const schemaName: string = database.databaseName;
+
+		const { results, fields } = await Database.query(`SELECT * FROM information_schema.columns WHERE table_schema = '${schemaName}'`);
+		const fkQueryResult = await Database.query(`SELECT TABLE_NAME,COLUMN_NAME,CONSTRAINT_NAME, REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_SCHEMA = '${schemaName}'`)
+		const fkeys = fkQueryResult.results! as any[];
+
+		if (results)
+		{
+			Table.tables.forEach(async t => 
+			{
+				const newScheme = t.scheme;
+				const check = await Database.query(`SHOW TABLES LIKE '${t.tableName}'`);
+
+				// table does not exists! create it 
+				if ((check.results as any).length === 0)
+				{
+					console.log(`creating table ${t.tableName}...`);
+					await Table.createTable(t.tableName, newScheme);
+					return;
+				}
+
+				const oldScheme: TableScheme<Model<any>> = {
+					id: {
+						type: "int",
+						isPrimaryKey: true,
+						autoIncrement: true,
+						isUnique: true,
+						isNotNull: true
+					},
+				};
+
+				(results as any).forEach(r =>
+				{
+					if (r.TABLE_NAME === t.tableName)
+					{
+						const columnName = r.COLUMN_NAME;
+
+						const info: ScehemTypeInfo<any> = {
+							type: r.DATA_TYPE.toLowerCase()
+						};
+
+						if (r.COLLATION_NAME?.includes("bin"))
+							info.isBinary = true;
+						if (r.COLUMN_TYPE?.includes("unsigned"))
+							info.isUnsigned = true;
+						if (r.IS_NULLABLE === "NO")
+							info.isNotNull = true;
+						if (r.CHARACTER_MAXIMUM_LENGTH)
+							info.size = r.CHARACTER_MAXIMUM_LENGTH;
+						if (r.EXTRA)
+						{
+							if (r.EXTRA === "auto_increment")
+							{
+								info.autoIncrement = true;
+							}
+							else if (r.EXTRA === "VIRTUAL GENERATED" && r.GENERATION_EXPRESSION)
+							{
+								info.generate = {
+									expression: r.GENERATION_EXPRESSION.split("\\'")[1],
+									type: "VIRTUAL"
+								}
+							}
+							else if (r.EXTRA === "STORED GENERATED" && r.GENERATION_EXPRESSION)
+							{
+								info.generate = {
+									expression: r.GENERATION_EXPRESSION.split("\\'")[1],
+									type: "STORED"
+								}
+							}
+						}
+						if (r.COLUMN_KEY)
+						{
+							if (r.COLUMN_KEY === "PRI")
+								info.isPrimaryKey = true;
+							else if (r.COLUMN_KEY === "UNI")
+								info.isUnique = true;
+						}
+
+						// check foreign keys
+						const fk = fkeys.find(r => (r.TABLE_NAME === t.tableName && r.COLUMN_NAME === columnName));
+						if (fk)
+						{
+							info.foreignKey = {
+								table: fk.REFERENCED_TABLE_NAME,
+								column: fk.REFERENCED_COLUMN_NAME,
+								refColumn: "",
+								onDelete: "NO ACTION",
+								onUpdate: "NO ACTION"
+							};
+						}
+
+						oldScheme[columnName] = info;
+					}
+				});
+
+				// check old and new table schemes
+				const oldProps = Object.keys(oldScheme);
+				const newProps = Object.keys(newScheme);
+
+				const all = [...oldProps, ...newProps];
+
+				const remove: string[] = [];
+				const add: string[] = [];
+				const modify: string[] = [];
+
+				all.forEach(p => 
+				{
+					if (oldProps.includes(p) && !newProps.includes(p))
+						remove.push(p);
+					else if (!oldProps.includes(p) && newProps.includes(p))
+						add.push(p);
+					else // compare inner structure
+					{
+						const oldInfo: ScehemTypeInfo<any> = oldScheme[p];
+						const newInfo: ScehemTypeInfo<any> = newScheme[p];
+
+						const allProps = [...Object.keys(oldInfo), ...Object.keys(newInfo)];
+						for (const prop of allProps)
+						{
+							if (prop === "generate")
+							{
+								const _old = oldInfo[prop] as GenerateInfo;
+								const _new = newInfo[prop] as GenerateInfo;
+
+								if (_old.expression !== _new.expression || _old.type !== _new.type)
+								{
+									modify.push(p);
+									break;
+								}
+							}
+							else if (prop === "foreignKey")
+							{
+								const _old = oldInfo[prop] as ForeignKeyInfo;
+								const _new = newInfo[prop] as ForeignKeyInfo;
+
+								for (const _prop in _old)
+								{
+									if (_old[_prop] !== _new[_prop])
+									{
+										modify.push(p);
+										break;
+									}
+								}
+							}
+							if (oldInfo[prop] !== newInfo[prop])
+							{
+								modify.push(p);
+								break;
+							}
+						};
+					}
+				});
+
+				if (remove.length > 0 || modify.length > 0 || add.length > 0)
+					await Table.alterTable(t.tableName, oldScheme, newScheme, add, modify, remove);
+			});
+		}
+		else
+		{
+			throw new Error("Could not initialize tables!");
+		}
+	}
+
+	private static async alterTable(tableName: string, oldScheme: TableScheme<any>, scheme: TableScheme<any>, add: string[], update: string[], remove: string[])
+	{
+		if (add.length > 0)
+		{
+			const primaryKeys: string[] = [];
+			const foreignKeys: ForeignKeyInfo[] = [];
+			const uniques: string[] = [];
+			const columns: string[] = [];
+
+			add.forEach(prop => columns.push("ADD " + this.createColumnDefinition(prop, scheme[prop], uniques, primaryKeys, foreignKeys)));
+
+			let sql = `ALTER TABLE ${tableName} ${columns.join(", ")}`;
+
+			if (primaryKeys.length > 0)
+				sql += `,${primaryKeys.map((column) => `PRIMARY KEY (\`${column}\`)`).join(", ")}`;
+
+			if (foreignKeys.length > 0)
+				sql += `,${foreignKeys.map(({ column, refColumn, table }) => `INDEX \`fk_${column}_idx\` (\`${column}\` ASC) VISIBLE, CONSTRAINT \`fk_${column}\` FOREIGN KEY (\`${column}\`) REFERENCES \`${table}\`(\`${refColumn}\`)`).join(", ")}`;
+
+			if (uniques.length > 0)
+				sql += `,${uniques.map((column) => `UNIQUE INDEX \`${column}_UNIQUE\` (\`${column}\` ASC) VISIBLE`).join(", ")}`;
+
+			await Database.query(sql);
+		}
+
+		if (remove.length > 0)
+		{
+			const sql = `ALTER TABLE ${tableName} ${remove.map(s => `DROP ${s}`).join(", ")}`;
+			await Database.query(sql);
+		}
+
+		if (update.length > 0)
+		{
+			// todo ALTER TABLE ... MODIFY .... logic implementation
+
+			let drop: string[] = [];
+			let add: string[] = [];
+			let _update: string[] = [];
+
+			const primaryKeys: string[] = [];
+			const foreignKeys: ForeignKeyInfo[] = [];
+			const uniques: string[] = [];
+			const columns: string[] = [];
+
+			for (const column in scheme)
+			{
+				if (oldScheme[column].foreignKey && !scheme[column].foreignKey)
+				{
+					drop.push(`FOREIGN KEY \`${column}\``, `INDEX \`fk_${column}_idx\``)
+				}
+				else if (!oldScheme[column].foreignKey && scheme[column].foreignKey)
+				{
+					add.push(column);
+				}
+				else if (oldScheme[column].foreignKey && scheme[column].foreignKey)
+				{
+					for (let p in oldScheme[column].foreignKey)
+						if (oldScheme[column].foreignKey![p] !== scheme[column].foreignKey![p])
+						{
+							drop.push(`FOREIGN KEY \`${column}\``, `INDEX \`fk_${column}_idx\``)
+							update.push(column);
+							break;
+						}
+				}
+
+				if(oldScheme[column].generate && !scheme[column].generate)
+				{
+					update.push(column);
+				}
+				else if(!oldScheme[column].generate && scheme[column].generate)
+				{
+					update.push(column);
+				}
+			}
+
+			drop.forEach(prop => columns.push(`DELETE ${prop}`));
+			add.forEach(prop => columns.push("ADD " + this.createColumnDefinition(prop, scheme[prop], uniques, primaryKeys, foreignKeys)));
+
+			let sql = `ALTER TABLE ${tableName} ${columns.join(", ")}`;
+
+			if (primaryKeys.length > 0)
+				sql += `,${primaryKeys.map((column) => `PRIMARY KEY (\`${column}\`)`).join(", ")}`;
+
+			if (foreignKeys.length > 0)
+				sql += `,${foreignKeys.map(({ column, refColumn, table }) => `INDEX \`fk_${column}_idx\` (\`${column}\` ASC) VISIBLE, CONSTRAINT \`fk_${column}\` FOREIGN KEY (\`${column}\`) REFERENCES \`${table}\`(\`${refColumn}\`)`).join(", ")}`;
+
+			if (uniques.length > 0)
+				sql += `,${uniques.map((column) => `UNIQUE INDEX \`${column}_UNIQUE\` (\`${column}\` ASC) VISIBLE`).join(", ")}`;
+
+			console.log(sql);
+
+			// await Database.query(sql);
+		}
+	}
+
+	private static createColumnDefinition(columnName: string, info: ScehemTypeInfo<any>, uniques: string[], primaryKeys: string[], foreignKeys: ForeignKeyInfo[])
+	{
+		const { type, size, autoIncrement, defaultValue, foreignKey, isBinary, generate, isNotNull, isPrimaryKey, isUnique, isUnsigned, zeroFill } = info;
+
+		const c: string[] = [columnName, type];
+
+		if (size)
+			c.push(`(${size})`);
+
+		if (isBinary && !generate)
+			c.push("BINARY");
+
+		if (isBinary && generate)
+			console.error(`cannot use generate and binary on column ${columnName}!`);
+
+		if (zeroFill)
+			c.push("ZEROFILL");
+
+		if (isUnsigned)
+			c.push("UNSIGNED");
+
+		if (isNotNull)
+			c.push("NOT NULL");
+
+		if (autoIncrement && !generate)
+			c.push("AUTO_INCREMENT");
+
+		if (autoIncrement && generate)
+			console.error(`cannot use generate and auto increment on column ${columnName}!`);
+
+		if (isUnique && !isPrimaryKey)
+			uniques.push(columnName);
+
+		if (defaultValue !== undefined)
+			c.push(`DEFAULT ${defaultValue === "" ? "\"\"" : defaultValue}`)
+
+		if (foreignKey)
+		{
+			foreignKeys.push({
+				column: columnName,
+				refColumn: foreignKey.column,
+				table: foreignKey.table,
+				onDelete: foreignKey.onDelete || "NO ACTION",
+				onUpdate: foreignKey.onUpdate || "NO ACTION",
+			});
+		}
+
+		if (isPrimaryKey)
+		{
+			primaryKeys.push(columnName);
+		}
+
+		if (generate)
+		{
+			const { expression, type } = generate;
+			c.push(`GENERATED ALWAYS AS (${expression}) ${type}`);
+		}
+
+		return c.join(" ");
+	}
+
+	private static async createTable(tableName: string, scheme: TableScheme<any>)
+	{
+		const columns: string[] = [];
+		const primaryKeys: string[] = [];
+		const foreignKeys: ForeignKeyInfo[] = [];
+		const uniques: string[] = [];
+
+		for (const p in scheme)
+			columns.push(this.createColumnDefinition(p, scheme[p], uniques, primaryKeys, foreignKeys));
+
+		let sql = `CREATE TABLE IF NOT EXISTS ${tableName} (${columns.join(", ")}`;
+
+		if (primaryKeys.length > 0)
+			sql += `,${primaryKeys.map((column) => `PRIMARY KEY (\`${column}\`)`).join(", ")}`;
+
+		if (foreignKeys.length > 0)
+			sql += `,${foreignKeys.map(({ column, refColumn, table }) => `INDEX \`fk_${column}_idx\` (\`${column}\` ASC) VISIBLE, CONSTRAINT \`fk_${column}\` FOREIGN KEY (\`${column}\`) REFERENCES \`${table}\`(\`${refColumn}\`)`).join(", ")}`;
+
+		if (uniques.length > 0)
+			sql += `,${uniques.map((column) => `UNIQUE INDEX \`${column}_UNIQUE\` (\`${column}\` ASC) VISIBLE`).join(", ")}`;
+
+		await Database.query(sql + ")");
 	}
 
 	public async select<K extends keyof Model<Required<T>>>(what: K[], match?: Match<Model<T>>, order?: QueryOrder<Model<T>>): Promise<Pick<Model<T>, K>[]>;
@@ -63,7 +438,7 @@ export class Table<T>
 	{
 		const data: any[] = [];
 		let whatParts: string[] = [];
-		for(const p in what)
+		for (const p in what)
 		{
 			whatParts.push(`${p} = ?`);
 			data.push(what[p]);
@@ -73,7 +448,7 @@ export class Table<T>
 
 		const query = `UPDATE ${this.tableName} SET ${whatParts.join(" ")} WHERE ${whereString}`;
 		const { results } = await Database.query(query, data);
-	
+
 		return results as QueryOkPacket;
 	}
 
@@ -147,3 +522,35 @@ type Matcher<T> = {
 };
 
 type Match<T> = Matcher<T> | Matcher<T>[];
+
+type ForeignKeyInfo = {
+	column: string;
+	table: string;
+	refColumn: string;
+	onDelete: string;
+	onUpdate: string;
+};
+
+type GenerateInfo = {
+	expression: string;
+	type: "VIRTUAL" | "STORED";
+};
+
+type ScehemTypeInfo<T> = {
+	type: "int" | "varchar" | "tinyint" | "date" | "datetime" | "time" | "timestamp" | "binary" | "text";
+	size?: number;
+	isNotNull?: boolean;
+	isUnique?: boolean;
+	isBinary?: boolean;
+	isUnsigned?: boolean;
+	zeroFill?: boolean;
+	autoIncrement?: boolean;
+	generate?: GenerateInfo;
+	defaultValue?: T;
+	isPrimaryKey?: boolean;
+	foreignKey?: ForeignKeyInfo;
+};
+
+type TableScheme<T> = {
+	[K in keyof T]: ScehemTypeInfo<T[K]>;
+};

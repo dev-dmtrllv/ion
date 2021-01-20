@@ -19,6 +19,7 @@ const socket_io_1 = __importDefault(require("socket.io"));
 const http_1 = __importDefault(require("http"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const equals_1 = require("../utils/equals");
 let ionConfig;
 let clientCompiler;
 let server;
@@ -45,12 +46,19 @@ const start = (cwd, ...args) => __awaiter(void 0, void 0, void 0, function* () {
         server.updateApp();
         sendReloadMessage();
     });
-    ionConfig.watch(() => __awaiter(void 0, void 0, void 0, function* () {
-        console.log("ion config changed!");
-        yield clientCompiler.close();
-        clientCompiler = new client_compiler_1.ClientCompiler(cwd, ionConfig, true);
-        yield clientCompiler.watch(() => server.updateApp());
-        yield server.start(true);
+    ionConfig.watch((old) => __awaiter(void 0, void 0, void 0, function* () {
+        console.log(old, ionConfig);
+        if (!equals_1.equals(old.apps, ionConfig.apps)) {
+            yield clientCompiler.close();
+            clientCompiler = new client_compiler_1.ClientCompiler(cwd, ionConfig, true);
+            yield clientCompiler.watch(() => server.updateApp());
+            yield server.start(true);
+            sendReloadMessage();
+        }
+        else if (!equals_1.equals(old.server, ionConfig.server) || !equals_1.equals(old.database, ionConfig.database)) {
+            yield server.start(true);
+            sendReloadMessage();
+        }
     }));
     server.watch(() => { console.log("server change"); sendReloadMessage(); });
     yield server.start();

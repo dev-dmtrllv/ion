@@ -86,7 +86,7 @@ export class IonConfig implements IIonConfig
 		});
 	}
 
-	public watch(onChange: () => any)
+	public watch(onChange: (old: IIonConfig) => any)
 	{
 		if (!this.isWatching)
 		{
@@ -95,6 +95,8 @@ export class IonConfig implements IIonConfig
 			{
 				if (e === "change" && !this.watchTimeout)
 				{
+					const old = JSON.parse(JSON.stringify(this));
+
 					this.watchTimeout = setTimeout(() => 
 					{
 						if (fs.existsSync(this.configPath))
@@ -112,7 +114,7 @@ export class IonConfig implements IIonConfig
 							(this as any).databaseConfig = undefined;
 						}
 						this.removeDuplicateApps();
-						onChange();
+						onChange(old);
 						this.watchTimeout = null;
 					}, 100);
 				}

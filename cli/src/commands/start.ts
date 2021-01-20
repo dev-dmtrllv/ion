@@ -6,6 +6,7 @@ import io from "socket.io"
 import http from "http"
 import express from "express";
 import cors from "cors";
+import { equals } from "../utils/equals";
 
 let ionConfig: IonConfig;
 let clientCompiler: ClientCompiler;
@@ -46,13 +47,23 @@ const start: ICommand = async (cwd, ...args) =>
 		sendReloadMessage();
 	});
 
-	ionConfig.watch(async () => 
+	ionConfig.watch(async (old) => 
 	{
-		console.log("ion config changed!");
-		await clientCompiler.close();
-		clientCompiler = new ClientCompiler(cwd, ionConfig, true);
-		await clientCompiler.watch(() => server.updateApp());
-		await server.start(true);
+		console.log(old, ionConfig);
+
+		if(!equals(old.apps, ionConfig.apps))
+		{
+			await clientCompiler.close();
+			clientCompiler = new ClientCompiler(cwd, ionConfig, true);
+			await clientCompiler.watch(() => server.updateApp());
+			await server.start(true);
+			sendReloadMessage();
+		}
+		else if(!equals(old.server, ionConfig.server) || !equals(old.database, ionConfig.database))
+		{
+			await server.start(true);
+			sendReloadMessage();
+		}
 	});
 		
 	server.watch(() => { console.log("server change"); sendReloadMessage(); });

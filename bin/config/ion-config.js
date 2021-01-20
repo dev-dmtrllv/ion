@@ -55,6 +55,7 @@ class IonConfig {
             this.isWatching = true;
             fs_1.default.watch(this.configPath, {}, (e, file) => {
                 if (e === "change" && !this.watchTimeout) {
+                    const old = JSON.parse(JSON.stringify(this));
                     this.watchTimeout = setTimeout(() => {
                         if (fs_1.default.existsSync(this.configPath)) {
                             const json = JSON.parse(fs_1.default.readFileSync(this.configPath, "utf-8"));
@@ -69,7 +70,7 @@ class IonConfig {
                             this.databaseConfig = undefined;
                         }
                         this.removeDuplicateApps();
-                        onChange();
+                        onChange(old);
                         this.watchTimeout = null;
                     }, 100);
                 }

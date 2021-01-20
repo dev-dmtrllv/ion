@@ -41,6 +41,7 @@ const session_file_store_1 = __importDefault(require("session-file-store"));
 const Manifest_1 = require("./Manifest");
 const Renderer_1 = require("./Renderer");
 const Config_1 = require("./Config");
+const Table_1 = require("./Table");
 class Server {
     constructor() {
         this.apps = {};
@@ -77,6 +78,7 @@ class Server {
                 res(this._httpServer);
             }
         });
+        this.initializeDatabase = () => __awaiter(this, void 0, void 0, function* () { return yield Table_1.Table.initializeTables(); });
         this.close = () => new Promise((res, rej) => {
             this.onClose();
             this._httpServer.close((err) => {
