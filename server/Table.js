@@ -340,6 +340,7 @@ Table.initializeTables = () => __awaiter(void 0, void 0, void 0, function* () {
                 }
             });
             if (remove.length > 0 || modify.length > 0 || add.length > 0) {
+                console.log(oldScheme, newScheme);
                 console.log(`Table ${t.tableName} is altered! Please provide a correct interface.`);
                 // 	await Table.alterTable(t.tableName, oldScheme, newScheme, add, modify, remove);
             }
