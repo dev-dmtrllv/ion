@@ -31,7 +31,7 @@ const getBabelAliases = () => {
     for (let alias in aliasPaths) {
         let p = aliasPaths[alias][0];
         if (p)
-            aliases[alias.replace("/*", "")] = "./" + p.replace("/*", "");
+            aliases[alias.replace("/*", "")] = "./src/" + p.replace("/*", "");
     }
     return aliases;
 };
