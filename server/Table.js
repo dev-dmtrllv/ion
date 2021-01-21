@@ -225,7 +225,7 @@ Table.initializeTables = () => __awaiter(void 0, void 0, void 0, function* () {
     const fkQueryResult = yield Database_1.Database.query(`SELECT TABLE_NAME,COLUMN_NAME,CONSTRAINT_NAME, REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_SCHEMA = '${schemaName}'`);
     const fkeys = fkQueryResult.results;
     if (results) {
-        Table.tables.forEach((t) => __awaiter(void 0, void 0, void 0, function* () {
+        for (const [_, t] of Table.tables) {
             const newScheme = t.scheme;
             const check = yield Database_1.Database.query(`SHOW TABLES LIKE '${t.tableName}'`);
             // table does not exists! create it 
@@ -344,7 +344,7 @@ Table.initializeTables = () => __awaiter(void 0, void 0, void 0, function* () {
                 console.log(`Table ${t.tableName} is altered! Please provide a correct interface.`);
                 // 	await Table.alterTable(t.tableName, oldScheme, newScheme, add, modify, remove);
             }
-        }));
+        }
     }
     else {
         throw new Error("Could not initialize tables!");

@@ -49,7 +49,7 @@ export class Table<T>
 
 		if (results)
 		{
-			Table.tables.forEach(async t => 
+			for(const [_, t] of Table.tables) 
 			{
 				const newScheme = t.scheme;
 				const check = await Database.query(`SHOW TABLES LIKE '${t.tableName}'`);
@@ -201,7 +201,7 @@ export class Table<T>
 					// 	await Table.alterTable(t.tableName, oldScheme, newScheme, add, modify, remove);
 				}
 
-			});
+			}
 		}
 		else
 		{
