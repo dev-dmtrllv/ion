@@ -281,6 +281,8 @@ Table.initializeTables = () => __awaiter(void 0, void 0, void 0, function* () {
                         else if (r.COLUMN_KEY === "UNI")
                             info.isUnique = true;
                     }
+                    if (r.COLUMN_DEFAULT)
+                        info.defaultValue = (r.DATA_TYPE === "tinyint") ? Boolean(r.COLUMN_DEFAULT) : (r.DATA_TYPE === "int" ? Number(r.COLUMN_DEFAULT) : r.DATA_TYPE.includes("date") ? new Date(r.COLUMN_DEFAULT) : r.COLUMN_DEFAULT);
                     // check foreign keys
                     const fk = fkeys.find(r => (r.TABLE_NAME === t.tableName && r.COLUMN_NAME === columnName));
                     if (fk) {
