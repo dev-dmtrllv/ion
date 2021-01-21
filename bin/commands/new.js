@@ -17,7 +17,7 @@ const fs_1 = __importDefault(require("fs"));
 const input_1 = require("../utils/input");
 const ion_config_1 = require("../config/ion-config");
 const spawn_1 = require("../utils/spawn");
-const utils_1 = require("../utils");
+const package_1 = require("../gen/package");
 const project_1 = require("../gen/project");
 const devDependencies = [
     "@types/express",
@@ -30,21 +30,6 @@ const dependencies = [
     "react",
     "react-dom"
 ];
-const createPackageJson = (projectDir, name) => {
-    utils_1.writeJson(path_1.default.resolve(projectDir, "package.json"), {
-        name,
-        version: "0.1.0",
-        description: "a server side rendered react app with request prefetching and caching",
-        main: "./dist/server.js",
-        scripts: {
-            watch: "ion start",
-            build: "ion build"
-        },
-        author: "",
-        license: "MIT",
-        repository: "example.repository",
-    });
-};
 const newProject = (cwd, ...args) => __awaiter(void 0, void 0, void 0, function* () {
     // check if project exists
     if (args[0] && fs_1.default.existsSync(path_1.default.resolve(cwd, args[0]))) {
@@ -75,7 +60,7 @@ const newProject = (cwd, ...args) => __awaiter(void 0, void 0, void 0, function*
     const ionConfig = new ion_config_1.IonConfig(projectPath, ion_config_1.IonConfig.defaultConfig.apps, ion_config_1.IonConfig.defaultConfig.server, databaseConfig);
     ionConfig.save();
     // create the package.json
-    createPackageJson(projectPath, name);
+    package_1.genPackageJson(projectPath, name);
     // install all dependencies
     yield spawn_1.spawn("npm", ["i", "--save", ...dependencies], projectPath);
     yield spawn_1.spawn("npm", ["i", "--save-dev", ...devDependencies], projectPath);

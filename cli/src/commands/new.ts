@@ -4,7 +4,7 @@ import { getInput } from "../utils/input";
 import { ICommand } from "./icommand";
 import { DatabaseConfig, IonConfig } from "../config/ion-config";
 import { spawn } from "../utils/spawn";
-import { writeJson } from "../utils";
+import { genPackageJson } from "../gen/package";
 import { genProject } from "../gen/project";
 
 const devDependencies = [
@@ -19,23 +19,6 @@ const dependencies = [
 	"react",
 	"react-dom"
 ];
-
-const createPackageJson = (projectDir: string, name: string) =>
-{
-	writeJson(path.resolve(projectDir, "package.json"), {
-		name,
-		version: "0.1.0",
-		description: "a server side rendered react app with request prefetching and caching",
-		main: "./dist/server.js", // TODO what should we have here?
-		scripts: {
-			watch: "ion start",
-			build: "ion build"
-		},
-		author: "",
-		license: "MIT",
-		repository: "example.repository",
-	});
-}
 
 const newProject: ICommand = async (cwd, ...args) =>
 {
@@ -77,7 +60,7 @@ const newProject: ICommand = async (cwd, ...args) =>
 	ionConfig.save();
 
 	// create the package.json
-	createPackageJson(projectPath, name);
+	genPackageJson(projectPath, name);
 
 	// install all dependencies
 	await spawn("npm", ["i", "--save", ...dependencies], projectPath);
