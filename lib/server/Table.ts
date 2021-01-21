@@ -195,7 +195,11 @@ export class Table<T>
 				});
 
 				if (remove.length > 0 || modify.length > 0 || add.length > 0)
-					await Table.alterTable(t.tableName, oldScheme, newScheme, add, modify, remove);
+				{
+					console.log(`Table ${t.tableName} is altered! Please provide a correct interface.`);
+					// 	await Table.alterTable(t.tableName, oldScheme, newScheme, add, modify, remove);
+				}
+
 			});
 		}
 		else
@@ -269,11 +273,11 @@ export class Table<T>
 						}
 				}
 
-				if(oldScheme[column].generate && !scheme[column].generate)
+				if (oldScheme[column].generate && !scheme[column].generate)
 				{
 					update.push(column);
 				}
-				else if(!oldScheme[column].generate && scheme[column].generate)
+				else if (!oldScheme[column].generate && scheme[column].generate)
 				{
 					update.push(column);
 				}
@@ -384,11 +388,11 @@ export class Table<T>
 		await Database.query(sql + ")");
 	}
 
-	public async select<K extends keyof Model<Required<T>>>(what: K[], match?: Match<Model<T>>, order?: QueryOrder<Model<T>>): Promise<Pick<Model<T>, K>[]>;
-	public async select<K extends keyof Model<Required<T>> | "*">(what: K, match?: Match<Model<T>>, order?: QueryOrder<Model<T>>): Promise<Model<Required<T>>[]>;
-	public async select<K extends keyof Model<Required<T>>>(what: K[] | "*", match?: Match<Model<T>>, order?: QueryOrder<Model<T>>)
+	public async select<K extends keyof Model<Required<T>>>(what: K | K[], match?: Match<Model<T>>, order?: QueryOrder<Model<T>>): Promise<Pick<Model<T>, K>[]>;
+	public async select<K extends keyof Model<Required<T>>>(what: K | "*" | K[], match?: Match<Model<T>>, order?: QueryOrder<Model<T>>): Promise<Model<Required<T>>[]>;
+	public async select<K extends keyof Model<Required<T>>>(what: K | K[] | "*", match?: Match<Model<T>>, order?: QueryOrder<Model<T>>)
 	{
-		const whatString = what == "*" ? what : what.join(",");
+		const whatString = Array.isArray(what) ? what.join(",") : what;
 		const data = [];
 		let whereString: string | null = null;
 		let orderString: string | null = null;

@@ -8,8 +8,8 @@ export declare class Table<T> {
     private static alterTable;
     private static createColumnDefinition;
     private static createTable;
-    select<K extends keyof Model<Required<T>>>(what: K[], match?: Match<Model<T>>, order?: QueryOrder<Model<T>>): Promise<Pick<Model<T>, K>[]>;
-    select<K extends keyof Model<Required<T>> | "*">(what: K, match?: Match<Model<T>>, order?: QueryOrder<Model<T>>): Promise<Model<Required<T>>[]>;
+    select<K extends keyof Model<Required<T>>>(what: K | K[], match?: Match<Model<T>>, order?: QueryOrder<Model<T>>): Promise<Pick<Model<T>, K>[]>;
+    select<K extends keyof Model<Required<T>>>(what: K | "*" | K[], match?: Match<Model<T>>, order?: QueryOrder<Model<T>>): Promise<Model<Required<T>>[]>;
     insert(props: T | T[]): Promise<QueryOkPacket>;
     update(what: AtLeastOne<Partial<T>>, match: Match<Model<T>>): Promise<QueryOkPacket>;
     delete(match: Match<Model<T>>): Promise<QueryOkPacket>;

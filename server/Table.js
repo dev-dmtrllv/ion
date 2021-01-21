@@ -155,7 +155,7 @@ class Table {
     }
     select(what, match, order) {
         return __awaiter(this, void 0, void 0, function* () {
-            const whatString = what == "*" ? what : what.join(",");
+            const whatString = Array.isArray(what) ? what.join(",") : what;
             const data = [];
             let whereString = null;
             let orderString = null;
@@ -339,8 +339,10 @@ Table.initializeTables = () => __awaiter(void 0, void 0, void 0, function* () {
                     ;
                 }
             });
-            if (remove.length > 0 || modify.length > 0 || add.length > 0)
-                yield Table.alterTable(t.tableName, oldScheme, newScheme, add, modify, remove);
+            if (remove.length > 0 || modify.length > 0 || add.length > 0) {
+                console.log(`Table ${t.tableName} is altered! Please provide a correct interface.`);
+                // 	await Table.alterTable(t.tableName, oldScheme, newScheme, add, modify, remove);
+            }
         }));
     }
     else {
