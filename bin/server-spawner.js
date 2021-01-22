@@ -27,7 +27,6 @@ const [, , ionConfigStr, projectDir = process.cwd()] = process.argv;
         init_ts_loader_1.initTsLoader();
         const ServerClass = require(serverEntry).default;
         const server = new ServerClass(ionConfig);
-        yield server.initializeDatabase();
-        server.listen();
+        yield server.listen();
     }
 }))();

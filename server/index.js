@@ -13,5 +13,3 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./Server"), exports);
 __exportStar(require("./Renderer"), exports);
 __exportStar(require("./Api"), exports);
-__exportStar(require("./Model"), exports);
-__exportStar(require("./Table"), exports);

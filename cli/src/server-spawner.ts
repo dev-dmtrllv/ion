@@ -21,7 +21,6 @@ const [, , ionConfigStr, projectDir = process.cwd()] = process.argv;
 
 		const ServerClass = require(serverEntry).default;
 		const server = new ServerClass(ionConfig);
-		await server.initializeDatabase();
-		server.listen();
+		await server.listen();
 	}
 })();
