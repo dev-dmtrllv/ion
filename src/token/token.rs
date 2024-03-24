@@ -31,27 +31,27 @@ impl<'a> Token<'a> {
 
     pub fn value(&self) -> &'a str {
         match self {
-            Separator(str) => *str,
-            Unknown(str) => *str,
-            Keyword(str) => *str,
-            Identifier(str) => *str,
-            Operator(str) => *str,
-            StringLiteral(str) => *str,
-            CharLiteral(str) => *str,
-            NumberLiteral(str) => *str,
+            Token::Separator(str) => *str,
+            Token::Unknown(str) => *str,
+            Token::Keyword(str) => *str,
+            Token::Identifier(str) => *str,
+            Token::Operator(str) => *str,
+            Token::StringLiteral(str) => *str,
+            Token::CharLiteral(str) => *str,
+            Token::NumberLiteral(str) => *str,
         }
     }
 
 	pub fn name(&self) -> &'static str {
         match self {
-            Separator(_) => "Seperator",
-            Unknown(_) => "Unknown",
-            Keyword(_) => "Keyword",
-            Identifier(_) => "Identifier",
-            Operator(_) => "Operator",
-            StringLiteral(_) => "StringLiteral",
-            CharLiteral(_) => "CharLiteral",
-            NumberLiteral(_) => "NumberLiteral",
+            Token::Separator(_) => "Seperator",
+            Token::Unknown(_) => "Unknown",
+            Token::Keyword(_) => "Keyword",
+            Token::Identifier(_) => "Identifier",
+            Token::Operator(_) => "Operator",
+            Token::StringLiteral(_) => "StringLiteral",
+            Token::CharLiteral(_) => "CharLiteral",
+            Token::NumberLiteral(_) => "NumberLiteral",
         }
     }
 
@@ -83,5 +83,3 @@ impl<'a> Token<'a> {
         }
     }
 }
-
-pub use Token::*;

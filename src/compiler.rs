@@ -3,7 +3,7 @@ use std::{
 };
 
 use crate::{
-    any_err::{AnyErr, AnyResult, AsAnyErr}, ast::module::Module, err, path::Path, token::{list::List, parser::Parser}
+    any_err::{AnyErr, AnyResult, AsAnyErr}, ast::module::Module, path::Path, token::{list::List, parser::Parser}
 };
 
 struct TokenMap<'a>(pub HashMap<&'a Path, List<'a>>);
@@ -47,7 +47,15 @@ impl Compiler {
 
 	#[allow(unused)]
     fn parse_asts<'a>(map: &'a TokenMap) -> AnyResult<AstMap<'a>> {
-		err!("TODO: Implement parse_asts(map: &'a TokenMap) function...")
+		let mut ast_map = AstMap(HashMap::new());
+		for (path, tokens) in &map.0 {
+			let module = Module::parse(path, tokens)?;
+			if cfg!(debug_assertions) {
+				println!("{module}");
+			}
+			ast_map.0.insert(path, module);
+		}
+		Ok(ast_map)
     }
 
 	#[allow(unused)]

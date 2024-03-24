@@ -4,7 +4,7 @@ mod compiler;
 mod path;
 mod token;
 
-use crate::compiler::Compiler;
+pub use crate::compiler::Compiler;
 
 fn main() {
 	match Compiler::compile() {

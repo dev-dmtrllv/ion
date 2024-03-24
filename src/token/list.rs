@@ -1,7 +1,5 @@
 use std::fmt::Display;
 
-use crate::any_err::AsAnyErr;
-
 use super::{location::Location, parser::ParsedToken, token::Token};
 
 #[derive(Debug)]

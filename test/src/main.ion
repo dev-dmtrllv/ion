@@ -1,11 +1,3 @@
 import std.console;
 
 use console::*;
-
-export fn t() {
-	mut a = test[2];
-}
-
-fn main<Test: Wop + A>(test: Test) {
-	
-}
