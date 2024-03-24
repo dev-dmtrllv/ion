@@ -10,6 +10,8 @@ pub struct AnyErr {
 
 #[cfg(feature = "enable_backtrace")]
 fn get_backtrace() -> String {
+    use std::backtrace::Backtrace;
+
 	format!("{}", Backtrace::force_capture())
 }
 

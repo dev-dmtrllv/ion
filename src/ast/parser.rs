@@ -85,4 +85,17 @@ impl<'a> Parser<'a> {
 			err!("Expected an identifier, found end of file!")
 		}
 	}
+
+	pub fn next_if(&mut self, token: Token<'a>) -> bool {
+		if let Some(t) = self.peek_next() {
+			if t == &token {
+				self.skip(1);
+				true
+			} else {
+				false
+			}
+		} else {
+			false
+		}
+	}
 }
