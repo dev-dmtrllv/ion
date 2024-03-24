@@ -1,0 +1,61 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug executable 'ion'",
+			"cargo": {
+				"args": [
+					"build",
+					"--bin=ion",
+					"--package=ion"
+				],
+				"filter": {
+					"name": "ion",
+					"kind": "bin"
+				}
+			},
+			"args": ["./test"],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in executable 'ion'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--bin=ion",
+					"--package=ion"
+				],
+				"filter": {
+					"name": "ion",
+					"kind": "bin"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}/test"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Run release executable 'ion'",
+			"cargo": {
+				"args": [
+					"build",
+					"--bin=ion",
+					"--package=ion",
+					"--release"
+				],
+				"filter": {
+					"name": "ion",
+					"kind": "bin"
+				}
+			},
+			"args": ["./test"],
+			"cwd": "${workspaceFolder}"
+		},
+	]
+}
