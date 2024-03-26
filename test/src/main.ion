@@ -3,5 +3,9 @@ import std.console;
 use console::*;
 
 export fn test() {
-	
+	let a = 1;
+	let b = a.test;
+	let c = b.wop();
+	let d = c[0];
+	let e = c[d].a;
 }

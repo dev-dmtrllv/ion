@@ -13,7 +13,7 @@ impl<'a> AstParser<'a> for Import<'a> {
 		loop {
 			identifiers.push(parser.get_ident()?);
 			match parser.next_or_err()? {
-				Token::Separator(".") => continue,
+				Token::Operator(".") => continue,
 				Token::Separator(";") => break,
 				_ => parser.unexpected()?
 			}

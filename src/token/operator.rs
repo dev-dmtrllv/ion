@@ -1,4 +1,4 @@
-pub const OPERATORS: [char; 13] = ['=', '+', '-', '*', '/', '&','|', '!', '~','<', '>', '?', '@'];
+pub const OPERATORS: [char; 14] = ['=', '+', '-', '*', '/', '&','|', '!', '~','<', '>', '?', '@', '.'];
 
 pub fn is_operator(char: char) -> bool {
 	OPERATORS.contains(&char)

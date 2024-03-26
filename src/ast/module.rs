@@ -24,7 +24,7 @@ pub struct Module<'a> {
 
 impl<'a> Module<'a> {
     pub fn parse(path: &'a Path, tokens: &'a List<'a>) -> AnyResult<Module<'a>> {
-        let mut parser = Parser::new(tokens);
+        let mut parser = Parser::new(tokens, path);
 
         let mut imports = vec![];
         let mut uses = vec![];

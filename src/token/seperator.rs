@@ -1,4 +1,4 @@
-pub const SEPERATORS: [char; 16] = [' ', '\t', '\r', '\n', ';', '"', '\'', '{', '}', '(', ')', '[', ']', '.', ',', ':'];
+pub const SEPERATORS: [char; 15] = [' ', '\t', '\r', '\n', ';', '"', '\'', '{', '}', '(', ')', '[', ']', ',', ':'];
 
 pub const IGNORABLE_SEPERATOR: [char; 4] = [' ', '\t', '\r', '\n'];
 

@@ -4,6 +4,7 @@ use super::parser::AstParser;
 
 use crate::{any_err::AnyResult, token::token::*};
 
+#[derive(Debug)]
 pub struct Use<'a>(pub Vec<&'a str>);
 
 impl<'a> AstParser<'a> for Use<'a> {

@@ -7,3 +7,6 @@ pub mod export;
 pub mod scope;
 pub mod expression;
 pub mod statement;
+pub mod assignment;
+pub mod member_access;
+pub mod index_access;

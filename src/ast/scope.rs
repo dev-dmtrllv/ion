@@ -3,14 +3,14 @@ use crate::{any_err::AnyResult, ast::parser::AstParser, token::token::Token};
 use super::{expression::Expression, parser::Parser, statement::Statement};
 
 #[derive(Debug)]
-pub enum Scope {
-	Statements(Vec<Statement>),
-	Expression(Vec<Expression>),
+pub enum Scope<'a> {
+	Statements(Vec<Statement<'a>>),
+	Expression(Box<Expression<'a>>),
 	Struct(),
 }
 
-impl Scope {
-	pub fn parse_statements<'a>(parser: &mut Parser<'a>) -> AnyResult<Scope> {
+impl<'a> Scope<'a> {
+	pub fn parse_statements(parser: &mut Parser<'a>) -> AnyResult<Scope<'a>> {
 		let mut statements = vec![];
 		
 		loop {
@@ -22,5 +22,11 @@ impl Scope {
 		}
 		
 		Ok(Self::Statements(statements))
+	}
+
+	pub fn parse_expression(parser: &mut Parser<'a>) -> AnyResult<Scope<'a>> {
+		let expr = Expression::parse(parser)?;
+		parser.expect_next(Token::Separator(")"))?;
+		Ok(Scope::Expression(Box::new(expr)))
 	}
 }
